@@ -23,3 +23,13 @@ def uglify(value):
         for i, x in enumerate(value)
     ]
     return ''.join(res)
+
+
+@register.filter
+def favorite_recipe(things, recipe):
+    return things.filter(recipe=recipe)
+
+
+@register.filter
+def follow_author(things, author):
+    return things.filter(author=author)

@@ -1,13 +1,13 @@
 {% load static %}
-
+{% load user_filters %}
 
 <div class="card" data-id="120">
     {% load thumbnail %}
     {% thumbnail recipe.image "480x480" crop="center" upscale=True as im %}
-        <a href="{{ im.url }}" class="link" target="_blank"><img src="{{ im.url }}" alt="Какой-то текст" class="card__image"></a>
+        <a href="{% url 'view_recipe' recipe.id %}" class="link" target="_blank"><img src="{{ im.url }}" alt="Какой-то текст" class="card__image"></a>
     {% endthumbnail %}
     <div class="card__body">
-        <a class="card__title link" href="#" target="_blank">{{recipe}}</a>
+        <a class="card__title link" href="{% url 'view_recipe' recipe.id %}" target="_blank">{{recipe}}</a>
         <ul class="card__items">
             <li class="card__item"><span class="badge badge_style_green">Обед</span></li>
             <li class="card__item"><span class="badge badge_style_orange">Завтрак</span></li>
@@ -15,11 +15,21 @@
         </ul>
         <div class="card__items card__items_column">
             <p class="card__text"><span class="icon-time"></span> {{recipe.cooking_time}} мин.</p>
-            <p class="card__text"><span class="icon-user"></span> <a href="#" style="color: black">{{recipe.author}}</a></p>
+            <p class="card__text"><span class="icon-user"></span> <a href="{% url 'authors_recipes' recipe.author.username %}" style="color: black">{{recipe.author}}</a></p>
         </div>
     </div>
     <div class="card__footer">
         <button class="button button_style_light-blue" name="purchases" data-out><span class="icon-plus button__icon"></span>Добавить в покупки</button>
-        <button class="button button_style_none" name="favorites" data-out><span class="icon-favorite"></span></button>
+        {% if user.favorite_recipes.all|favorite_recipe:recipe %}
+            <form action="{% url 'favorite_del' recipe.id %}" method="post">
+                {% csrf_token %}
+                <button class="button button_style_none" name="favorites2" data-out><span class="icon-favorite icon-favorite_active"></span></button>
+            </form>
+        {% else %}
+        <form action="{% url 'favorite_add' recipe.id %}" method="post">
+            {% csrf_token %}
+            <button class="button button_style_none" name="favorites2" data-out><span class="icon-favorite"></span></button>
+        </form>
+        {% endif %}
     </div>
 </div>

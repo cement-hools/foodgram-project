@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+{% load user_filters %}
+{% block title %}Рецепты{% endblock %}
+
+{% block main_title %}Избранное{% endblock main_title %}
+{% block tags %}{% include 'includes/tags.html' %}{% endblock tags %}
+
+{% block content %}
+    <div class="card-list">
+        {% for item in page %}
+            {% include 'includes/recipe_card.html' with recipe=item.recipe %}
+        {% endfor %}
+    </div>
+        {% if page.has_other_pages %}
+            {% include "includes/paginator.html" with items=page paginator=paginator %}
+        {% endif %}
+
+{% endblock content %}
+
+{% block style %}
+    {% include 'includes/index_style.html' %}
+{% endblock style %}

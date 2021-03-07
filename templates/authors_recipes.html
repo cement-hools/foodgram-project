@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+{% load user_filters %}
+{% block title %}Рецепты{% endblock %}
+
+{% block main_title %}{{username}}{% endblock main_title %}
+{% block tags %}{% include 'includes/tags.html' %}{% endblock tags %}
+
+{% block content %}
+    {% if user.is_authenticated and user.username != username %}
+        {% if not follow_or_author %}
+            <div class="author-subscribe" data-author="323">
+                {% include 'includes/follow_button.html' with username=username %}
+            </div>
+        {% else %}
+            <div class="author-subscribe" data-author="323">
+                {% include 'includes/unfollow_button.html' with username=username %}
+            </div>
+        {% endif %}
+    {% endif %}
+    <div class="card-list">
+        {% for recipe in page %}
+            {% include 'includes/recipe_card.html' with recipe=recipe %}
+        {% endfor %}
+    </div>
+        {% if page.has_other_pages %}
+            {% include "includes/paginator.html" with items=page paginator=paginator %}
+        {% endif %}
+
+{% endblock content %}
+
+{% block style %}
+    {% include 'includes/index_style.html' %}
+{% endblock style %}
