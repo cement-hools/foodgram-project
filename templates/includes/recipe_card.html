@@ -1,7 +1,7 @@
 {% load static %}
 {% load user_filters %}
-
-<div class="card" data-id="120">
+{% csrf_token %}
+<div class="card" data-id="{{recipe.id}}">
     {% load thumbnail %}
     {% thumbnail recipe.image "480x480" crop="center" upscale=True as im %}
         <a href="{% url 'view_recipe' recipe.id %}" class="link" target="_blank"><img src="{{ im.url }}" alt="Какой-то текст" class="card__image"></a>
@@ -9,9 +9,15 @@
     <div class="card__body">
         <a class="card__title link" href="{% url 'view_recipe' recipe.id %}" target="_blank">{{recipe}}</a>
         <ul class="card__items">
-            <li class="card__item"><span class="badge badge_style_green">Обед</span></li>
-            <li class="card__item"><span class="badge badge_style_orange">Завтрак</span></li>
-            <li class="card__item"><span class="badge badge_style_purple">Ужин</span></li>
+            {% for tag in recipe.tags.all %}
+                {% if tag.title == 'Обед' %}
+                  <li class="card__item"><span class="badge badge_style_green">{{ tag.title }}</span></li>
+                {% elif tag.title == 'Завтрак' %}
+                   <li class="card__item"><span class="badge badge_style_orange">{{ tag.title }}</span></li>
+                {% elif tag.title == 'Ужин' %}
+                  <li class="card__item"><span class="badge badge_style_purple">{{ tag.title }}</span></li>
+                {% endif %}
+            {% endfor %}
         </ul>
         <div class="card__items card__items_column">
             <p class="card__text"><span class="icon-time"></span> {{recipe.cooking_time}} мин.</p>
@@ -19,17 +25,17 @@
         </div>
     </div>
     <div class="card__footer">
-        <button class="button button_style_light-blue" name="purchases" data-out><span class="icon-plus button__icon"></span>Добавить в покупки</button>
-        {% if user.favorite_recipes.all|favorite_recipe:recipe %}
-            <form action="{% url 'favorite_del' recipe.id %}" method="post">
-                {% csrf_token %}
-                <button class="button button_style_none" name="favorites2" data-out><span class="icon-favorite icon-favorite_active"></span></button>
-            </form>
-        {% else %}
-        <form action="{% url 'favorite_add' recipe.id %}" method="post">
-            {% csrf_token %}
-            <button class="button button_style_none" name="favorites2" data-out><span class="icon-favorite"></span></button>
-        </form>
+        {% if user.is_authenticated %}
+            {% if user.users_shopping_lists.all|favorite_recipe:recipe %}
+                <button class="button button_style_light-blue-outline" name="purchases"><span class="icon-check button__icon"></span>Рецепт добавлен</button>
+            {% else %}
+                <button class="button button_style_light-blue" name="purchases" data-out><span class="icon-plus button__icon"></span>Добавить в покупки</button></button>
+            {% endif %}
+            {% if user.favorite_recipes.all|favorite_recipe:recipe %}
+                <button class="button button_style_none" name="favorites"><span class="icon-favorite icon-favorite_active"></span></button>
+            {% else %}
+                <button class="button button_style_none" name="favorites" data-out><span class="icon-favorite"></span></button>
+            {% endif %}
         {% endif %}
     </div>
 </div>

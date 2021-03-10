@@ -3,12 +3,16 @@ import csv
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import HttpResponse
+from django.db.models import Sum, F
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_http_methods
 
 from foodgram import settings
 from .forms import RecipeForm
-from .models import Ingredient, Recipe, FavoriteRecipe, Follow
+from .logic import get_ingredients, add_ingredients_to_recipe, save_recipe, \
+    get_tags_for_filter
+from .models import Ingredient, Recipe, FavoriteRecipe, Follow, ShoppingList
 
 User = get_user_model()
 
@@ -25,7 +29,6 @@ def fill_tables(request):
                 title=row[0],
                 dimension=row[1],
             )
-            # print(_, created)
     return HttpResponse('ok')
 
 
@@ -39,12 +42,6 @@ def test(request):
         description='xczv',
         cooking_time='3',
     )
-    # amount, created = IngredientAmount.objects.get_or_create(
-    #     ingredient=ingredient,
-    #     recipe=recipe,
-    #     amount=25,
-    # )
-
     print(recipe, recipe.ingredients.all())
     recipe.ingredients.add(ingredient2,
                            through_defaults={'amount': 100}
@@ -61,16 +58,30 @@ def test(request):
     return HttpResponse()
 
 
+@require_http_methods(['GET'])
+def ingredients(request):
+    """Вывод ингредиентов в форме"""
+    if request.GET:
+        query = (request.GET['query']).lower()
+        ingredients_list = Ingredient.objects.values('title',
+                                                     'dimension').filter(
+            title__icontains=query)
+        context = list(ingredients_list)
+        return JsonResponse(context, safe=False)
+
+
 def index(request):
     """Главная страница. Список всех рецептов."""
-    recipes = Recipe.objects.all()
+    tags, tags_for_filter = get_tags_for_filter(request)
+    recipes = Recipe.objects.filter(tags__in=tags_for_filter)
     paginator = Paginator(recipes, OBJECT_PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {
-        'range': range(7),
         'page': page,
         'paginator': paginator,
+        'tags': tags,
+        'tags_for_filter': tags_for_filter,
     }
     return render(request, 'index.html', context)
 
@@ -86,7 +97,9 @@ def view_recipe(request, recipe_id):
 
 def authors_recipes(request, username):
     """Список рецептов одного автора."""
-    recipe_list = Recipe.objects.filter(author__username=username)
+    tags, tags_for_filter = get_tags_for_filter(request)
+    recipe_list = Recipe.objects.filter(author__username=username,
+                                        tags__in=tags_for_filter)
     paginator = Paginator(recipe_list, OBJECT_PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
@@ -94,6 +107,8 @@ def authors_recipes(request, username):
         'page': page,
         'paginator': paginator,
         'username': username,
+        'tags': tags,
+        'tags_for_filter': tags_for_filter,
     }
     if request.user.is_authenticated:
         author = get_object_or_404(User, username=username)
@@ -112,17 +127,11 @@ def add_recipe(request):
     form = RecipeForm(request.POST or None, files=request.FILES or None, )
     print(request.POST)
     if form.is_valid():
-        print(form.cleaned_data)
-        print(form.cleaned_data['tags'])
-        recipe = form.save(commit=False)
-        recipe.author = request.user
-        recipe.save()
+        recipe = save_recipe(request, form)
         return redirect(to=view_recipe, recipe_id=recipe.id)
     print(form.errors.as_data())
-    tags = []
     context = {
         'form': form,
-        'tags': tags,
     }
     return render(request, 'recipe_form.html', context)
 
@@ -131,22 +140,27 @@ def add_recipe(request):
 def edit_recipe(request, recipe_id):
     """Редактировать рецепт."""
     recipe = get_object_or_404(Recipe, id=recipe_id)
-    if request.user != recipe.author:
+    if request.user != recipe.author and not request.user.is_staff:
         return redirect(to=view_recipe, recipe_id=recipe_id)
+
     form = RecipeForm(
         request.POST or None,
         files=request.FILES or None,
         instance=recipe
     )
     if form.is_valid():
+        recipe.ingredients.clear()
         form.save()
+        ingredients = get_ingredients(request)
+        print('ingredients', ingredients, recipe.id)
+        add_ingredients_to_recipe(ingredients, recipe)
         return redirect(to=view_recipe, recipe_id=recipe_id)
     print(form.errors.as_data())
     context = {
         'form': form,
         'recipe': recipe,
     }
-    return render(request, 'recipe_form.html', context)
+    return render(request, 'recipe_edit_form.html', context)
 
 
 @login_required
@@ -162,14 +176,18 @@ def del_recipe(request, recipe_id):
 @login_required
 def favorite(request):
     """Все избранные рецепты."""
+    tags, tags_for_filter = get_tags_for_filter(request)
     my_user = request.user
-    recipes_list = my_user.favorite_recipes.all()
+    recipes_list = my_user.favorite_recipes.filter(
+        recipe__tags__in=tags_for_filter)
     paginator = Paginator(recipes_list, OBJECT_PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     context = {
         'page': page,
         'paginator': paginator,
+        'tags': tags,
+        'tags_for_filter': tags_for_filter,
     }
     return render(request, 'favorite.html', context)
 
@@ -236,3 +254,90 @@ def subscriptions(request):
         'paginator': paginator
     }
     return render(request, 'subscriptions.html', context)
+
+
+@require_http_methods(['GET'])
+def purchases_list(request):
+    print('GET DICK')
+    context = {'success': True}
+    return JsonResponse(context)
+
+
+@require_http_methods(['POST', 'DELETE'])
+def purchases(request, recipe_id):
+    """Добавить/удалить в список покупок"""
+    my_user = request.user
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    context = {'success': True}
+    if request.method == 'POST':
+        print('purchases POST')
+        _, created = ShoppingList.objects.get_or_create(user=my_user,
+                                                        recipe=recipe)
+        return JsonResponse(context)
+        context = {'success': True}
+        return JsonResponse(context)
+    print('purchases DELETE')
+    favorite_recipe = get_object_or_404(ShoppingList, user=my_user,
+                                        recipe=recipe)
+    favorite_recipe.delete()
+    return JsonResponse(context)
+
+
+def shopping_list(request):
+    """Страница Список покупок."""
+    my_user = request.user
+    shopping_list = my_user.users_shopping_lists.all
+    context = {
+        'shopping_list': shopping_list,
+    }
+    return render(request, 'shopping_list.html', context)
+
+
+def shopping_list_save(request):
+    """Скачать список ингредиентов"""
+    my_user = request.user
+    ingredient_list = Recipe.objects.prefetch_related(
+        'ingredients', 'ingredients_amount'
+    ).filter(
+        shopping_lists__user=my_user
+    ).order_by(
+        'ingredients__title'
+    ).values(
+        'ingredients__title', 'ingredients__dimension'
+    ).annotate(
+        title=F('ingredients__title'),
+        amount=Sum('ingredients_amount__amount'),
+        dimension=F('ingredients__dimension')
+    )
+    ingredient_txt = []
+    count = 1
+    for item in ingredient_list:
+        ingredient_txt.append(
+            (f"{count}. {item['title'].capitalize()} "
+             f"\u2014 {item['amount']} {item['dimension']}.\n")
+        )
+        count += 1
+
+    filename = 'shoppinglist.txt'
+    response = HttpResponse(ingredient_txt, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename={filename}'
+    return response
+
+
+@require_http_methods(['POST', 'DELETE'])
+def favorites(request, recipe_id):
+    """Добавить/удалить рецепт в избранное."""
+    my_user = request.user
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    context = {'success': True}
+
+    if request.method == 'POST':
+        print('favorites POST')
+        _, created = FavoriteRecipe.objects.get_or_create(user=my_user,
+                                                          recipe=recipe)
+        return JsonResponse(context)
+    print('favorites DELETE')
+    favorite_recipe = get_object_or_404(FavoriteRecipe, user=my_user,
+                                        recipe__id=recipe_id)
+    favorite_recipe.delete()
+    return JsonResponse(context)

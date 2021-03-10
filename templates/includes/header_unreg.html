@@ -3,7 +3,6 @@
         <div class="nav__container container">
             <ul class="nav__items list">
                 <li class="nav__item {% if 'index' not in url_name %}nav__item_disabled{% endif %}"><a href="{% url 'index' %}" class="nav__link link">Рецепты</a></li>
-                <li class="nav__item {% if 'list' not in url_name %}nav__item_disabled{% endif %}"><a href="#" class="nav__link link">Список покупок</a></li>
             </ul>
             <ul class="nav__items list">
                 <li class="nav__item"><a href="{% url 'login' %}" class="nav__link link">Войти</a></li>

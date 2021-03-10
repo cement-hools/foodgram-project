@@ -1,15 +1,10 @@
 from django import forms
 
-from .models import Recipe, Tag
+from .models import Recipe
 
 
 class RecipeForm(forms.ModelForm):
     """Форма создания рецепта."""
-
-    title = forms.CharField(max_length=256)
-
-    cooking_time = forms.IntegerField(min_value=1)
-    # image = forms.ImageField()
 
     class Meta:
         model = Recipe

@@ -1,20 +1,17 @@
-<ul class="tags">
-    <li class="tags__item">
-        <a id="breakfast"
-           class="tags__checkbox tags__checkbox_style_orange tags__checkbox_active"
-           href="#"></a>
-        <span class="tags__label">Завтрак</span>
-    </li>
-    <li class="tags__item">
-        <a id="lunch"
-           class="tags__checkbox tags__checkbox_style_green tags__checkbox_active"
-           href="#"></a>
-        <span for="lunch" class="tags__label">Обед</span>
-    </li>
-    <li class="tags__item">
-        <a id="dinner"
-           class="tags__checkbox tags__checkbox_style_purple tags__checkbox_active"
-           href="#"></a>
-        <label for="dinner" class="tags__label">Ужин</label>
-    </li>
-</ul>
+{% load recipe_filters %}
+{% with url_name=request.resolver_match.url_name %}
+    <ul class="tags">
+        {% for tag in tags %}
+        <li class="tags__item">
+            <a id="id_tags_{{tag.id}}"
+               class="tags__checkbox {{tag.color}} {% if tag.id in tags_for_filter %} tags__checkbox_active{% endif %}"
+                {% if username %}
+                   href="{% url url_name username %}?{{ request|tags_link:tag }}"></a>
+                {% else %}
+                    href="{% url url_name %}?{{ request|tags_link:tag }}"></a>
+                {% endif %}
+            <span for="id_tags_{{tag.id}}"class="tags__label">{{tag.title}}</span>
+        </li>
+        {% endfor %}
+    </ul>
+{% endwith %}

@@ -11,12 +11,15 @@ class Ingredient(models.Model):
 
     class Meta:
         ordering = ('title',)
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
 
     def __str__(self):
         return self.title
 
 
 class Tag(models.Model):
+    """Модель тега."""
     TAG_COLOR = (
         ('tags__checkbox_style_orange', 'Оранжевый',),
         ('tags__checkbox_style_green', 'Зеленый'),
@@ -24,6 +27,11 @@ class Tag(models.Model):
     )
     title = models.CharField('Название', max_length=50, null=True)
     color = models.CharField('Цвет', max_length=50, choices=TAG_COLOR)
+
+    class Meta:
+        ordering = ('title',)
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
 
     def __str__(self):
         return self.title
@@ -79,8 +87,7 @@ class IngredientAmount(models.Model):
         blank=False,
         verbose_name='рецепт',
     )
-    amount = models.DecimalField('количество', max_digits=6, decimal_places=1,
-                                 blank=False)
+    amount = models.IntegerField('количество', blank=False)
 
     class Meta:
         verbose_name = 'кол-во ингредиента'
@@ -95,7 +102,7 @@ class IngredientAmount(models.Model):
 
 
 class FavoriteRecipe(models.Model):
-    """Избранные рецепты."""
+    """Избранный рецепт."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -112,9 +119,36 @@ class FavoriteRecipe(models.Model):
 
     class Meta:
         ordering = ('-recipe__pub_date',)
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
 
     def __str__(self):
         return f'{self.user} добавил в избранное {self.recipe}'
+
+
+class ShoppingList(models.Model):
+    """Список покупок."""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='users_shopping_lists'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='shopping_lists'
+    )
+    pub_date = models.DateTimeField(
+        'дата добавления', auto_now_add=True, db_index=True
+    )
+
+    class Meta:
+        ordering = ('-pub_date',)
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
+
+    def __str__(self):
+        return f'{self.user} добавил в список покупок {self.recipe}'
 
 
 class Follow(models.Model):
@@ -132,4 +166,9 @@ class Follow(models.Model):
     pub_date = models.DateTimeField('дата добавления', auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "author")
+        unique_together = ('user', 'author',)
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+
+    def __str__(self):
+        return f'{self.user} подписался на {self.author}'
