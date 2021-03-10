@@ -19,43 +19,18 @@ User = get_user_model()
 OBJECT_PER_PAGE = settings.OBJECT_PER_PAGE
 
 
+@login_required
 def fill_tables(request):
-    # заполняем категории
+    if not request.user.is_superuser:
+        return redirect(request.META.get('HTTP_REFERER'))
     with open('ingredients/ingredients.csv', encoding='utf8') as f:
         reader = csv.reader(f)
         for row in reader:
-            # print(row[0] + '   ' + row[1])
             _, created = Ingredient.objects.get_or_create(
                 title=row[0],
                 dimension=row[1],
             )
     return HttpResponse('ok')
-
-
-def test(request):
-    ingredient = Ingredient.objects.get(id=1)
-    ingredient2 = Ingredient.objects.get(id=2)
-    print(ingredient)
-    recipe, _ = Recipe.objects.get_or_create(
-        title='Пюре',
-        author=request.user,
-        description='xczv',
-        cooking_time='3',
-    )
-    print(recipe, recipe.ingredients.all())
-    recipe.ingredients.add(ingredient2,
-                           through_defaults={'amount': 100}
-                           )
-    recipe.ingredients.create(
-        through_defaults={
-            'amount': 20,
-            'ingredient': ingredient,
-        }
-    )
-
-    for i in recipe.ingredients.all():
-        print(i.amount.all())
-    return HttpResponse()
 
 
 @require_http_methods(['GET'])
@@ -125,11 +100,9 @@ def authors_recipes(request, username):
 def add_recipe(request):
     """Создание нового рецепта."""
     form = RecipeForm(request.POST or None, files=request.FILES or None, )
-    print(request.POST)
     if form.is_valid():
         recipe = save_recipe(request, form)
         return redirect(to=view_recipe, recipe_id=recipe.id)
-    print(form.errors.as_data())
     context = {
         'form': form,
     }
@@ -152,10 +125,8 @@ def edit_recipe(request, recipe_id):
         recipe.ingredients.clear()
         form.save()
         ingredients = get_ingredients(request)
-        print('ingredients', ingredients, recipe.id)
         add_ingredients_to_recipe(ingredients, recipe)
         return redirect(to=view_recipe, recipe_id=recipe_id)
-    print(form.errors.as_data())
     context = {
         'form': form,
         'recipe': recipe,
@@ -193,39 +164,13 @@ def favorite(request):
 
 
 @login_required
-def add_recipe_in_favorite(request, recipe_id):
-    """Добавить рецепт в избранное."""
-    my_user = request.user
-    recipe = get_object_or_404(Recipe, id=recipe_id)
-    _, created = FavoriteRecipe.objects.get_or_create(user=my_user,
-                                                      recipe=recipe)
-    print(created)
-    # return redirect(to=view_recipe, recipe_id=recipe_id)
-    return redirect(request.META.get('HTTP_REFERER'))
-
-
-@login_required
-def del_recipe_in_favorite(request, recipe_id):
-    """Удалить рецепт из избранного."""
-    my_user = request.user
-    favorite_recipe = get_object_or_404(FavoriteRecipe, user=my_user,
-                                        recipe__id=recipe_id)
-    favorite_recipe.delete()
-    print('deleted', favorite_recipe)
-    # return redirect(to=view_recipe, recipe_id=recipe_id)
-    return redirect(request.META.get('HTTP_REFERER'))
-
-
-@login_required
 def author_follow(request, username):
     """Подписаться на автора."""
     my_user = request.user
     my_author = get_object_or_404(User, username=username)
     if my_user == my_author:
-        print('You are author!!!')
         return redirect(request.META.get('HTTP_REFERER'))
     _, created = Follow.objects.get_or_create(user=my_user, author=my_author)
-    print('You are follow!!!', created)
     return redirect(request.META.get('HTTP_REFERER'))
 
 
@@ -237,7 +182,6 @@ def author_unfollow(request, username):
     authors = Follow.objects.filter(user=my_user, author=my_author)
     if authors.exists():
         authors.delete()
-    # return redirect(to='authors_recipes', username=username)
     return redirect(request.META.get('HTTP_REFERER'))
 
 
@@ -256,13 +200,6 @@ def subscriptions(request):
     return render(request, 'subscriptions.html', context)
 
 
-@require_http_methods(['GET'])
-def purchases_list(request):
-    print('GET DICK')
-    context = {'success': True}
-    return JsonResponse(context)
-
-
 @require_http_methods(['POST', 'DELETE'])
 def purchases(request, recipe_id):
     """Добавить/удалить в список покупок"""
@@ -270,13 +207,12 @@ def purchases(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
     context = {'success': True}
     if request.method == 'POST':
-        print('purchases POST')
         _, created = ShoppingList.objects.get_or_create(user=my_user,
                                                         recipe=recipe)
         return JsonResponse(context)
         context = {'success': True}
         return JsonResponse(context)
-    print('purchases DELETE')
+
     favorite_recipe = get_object_or_404(ShoppingList, user=my_user,
                                         recipe=recipe)
     favorite_recipe.delete()
@@ -332,11 +268,10 @@ def favorites(request, recipe_id):
     context = {'success': True}
 
     if request.method == 'POST':
-        print('favorites POST')
         _, created = FavoriteRecipe.objects.get_or_create(user=my_user,
                                                           recipe=recipe)
         return JsonResponse(context)
-    print('favorites DELETE')
+
     favorite_recipe = get_object_or_404(FavoriteRecipe, user=my_user,
                                         recipe__id=recipe_id)
     favorite_recipe.delete()
