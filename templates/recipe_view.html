@@ -61,7 +61,7 @@
                     {% csrf_token %}
                     <li class="single-card__item">
                         <button class="button button_style_light-blue button_size_subscribe"
-                                name="subscribe" data-out>Подписаться на автора</button>
+                                name="subscribe1" data-out>Подписаться на автора</button>
                     </li>
                 </form>
             {% else %}
@@ -69,7 +69,7 @@
                     <form action="{% url 'unfollow' recipe.author %}" method="post">
                         {% csrf_token %}
                             <button class="button button_style_light-blue button_size_subscribe"
-                                    name="subscribe" data-out>Отписаться от автора
+                                    name="subscribe1" data-out>Отписаться от автора
                             </button>
                     </form>
                 </li>
