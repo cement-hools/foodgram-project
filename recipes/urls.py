@@ -30,5 +30,4 @@ urlpatterns = [
 
     path('ingredients/', views.ingredients, name='ingredients'),
 
-    path('fill/', views.fill_tables),
 ]

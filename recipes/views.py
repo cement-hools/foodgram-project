@@ -1,5 +1,3 @@
-import csv
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
@@ -17,20 +15,6 @@ from .models import Ingredient, Recipe, FavoriteRecipe, Follow, ShoppingList
 User = get_user_model()
 
 OBJECT_PER_PAGE = settings.OBJECT_PER_PAGE
-
-
-@login_required
-def fill_tables(request):
-    if not request.user.is_superuser:
-        return redirect(request.META.get('HTTP_REFERER'))
-    with open('ingredients/ingredients.csv', encoding='utf8') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            _, created = Ingredient.objects.get_or_create(
-                title=row[0],
-                dimension=row[1],
-            )
-    return HttpResponse('ok')
 
 
 @require_http_methods(['GET'])
