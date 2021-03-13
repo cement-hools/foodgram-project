@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 
 from foodgram import settings
 from .forms import RecipeForm
-from .logic import get_ingredients, add_ingredients_to_recipe, save_recipe, \
+from .utils import get_ingredients, add_ingredients_to_recipe, save_recipe, \
     get_tags_for_filter
 from .models import Ingredient, Recipe, FavoriteRecipe, Follow, ShoppingList
 
@@ -130,8 +130,9 @@ def edit_recipe(request, recipe_id):
 @login_required
 def del_recipe(request, recipe_id):
     """Удалить рецепт."""
+    my_user = request.user
     recipe = get_object_or_404(Recipe, id=recipe_id)
-    if request.user != recipe.author:
+    if my_user != recipe.author and not my_user.is_staff:
         return redirect(to=view_recipe, recipe_id=recipe_id)
     recipe.delete()
     return redirect(to=index)

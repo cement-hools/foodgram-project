@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from .models import IngredientAmount, Ingredient, Tag
 
 
@@ -18,14 +20,17 @@ def get_ingredients(request):
 
 def add_ingredients_to_recipe(ingredients, recipe):
     """Добавить ингредиенты в рецепт."""
+    ingredient_amount = []
     for title, amount in ingredients.items():
-        ingredient = Ingredient.objects.get(title=title)
-        ingredient_amount = IngredientAmount(
-            recipe=recipe,
-            ingredient=ingredient,
-            amount=amount
+        ingredient = get_object_or_404(Ingredient, title=title)
+        ingredient_amount.append(
+            IngredientAmount(
+                recipe=recipe,
+                ingredient=ingredient,
+                amount=amount
+            )
         )
-        ingredient_amount.save()
+    IngredientAmount.objects.bulk_create(ingredient_amount)
     return True
 
 
@@ -44,7 +49,7 @@ def save_recipe(request, form):
 def get_tags_for_filter(request):
     """Получить теги для сортировки."""
     tags = Tag.objects.all()
-    tags_id = [tag.id for tag in tags]
+    tags_id = tags.values_list('id', flat=True)
     request_teg_id = [int(tag_id) for tag_id in request.GET.getlist('tags')]
     tags_for_filter = request_teg_id or tags_id
     return tags, tags_for_filter,
