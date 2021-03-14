@@ -20,13 +20,14 @@ urlpatterns = [
     path('favorite/', views.favorite, name='favorite'),
     path('favorites/<int:recipe_id>/', views.favorites, name='favorites'),
 
-    path('follow/<str:username>/', views.author_follow, name='follow'),
-    path('unfollow/<str:username>/', views.author_unfollow, name='unfollow'),
+    path('subscriptions_list/', views.subscriptions_list,
+         name='subscriptions_list'),
+    path('subscriptions/<int:author_id>/', views.subscriptions,
+         name='subscriptions'),
 
-    path('subscriptions/', views.subscriptions, name='subscriptions'),
     path('purchases/<int:recipe_id>/', views.purchases, name='purchases'),
-    path('shoppinglist/', views.shopping_list, name='shopping_list'),
-    path('shoppinglist/save/', views.shopping_list_save,
+    path('shopping_list/', views.shopping_list, name='shopping_list'),
+    path('shopping_list/save/', views.shopping_list_save,
          name='shopping_list_save'),
 
     path('ingredients/', views.ingredients, name='ingredients'),

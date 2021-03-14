@@ -8,9 +8,9 @@ from django.views.decorators.http import require_http_methods
 
 from foodgram import settings
 from .forms import RecipeForm
-from .utils import get_ingredients, add_ingredients_to_recipe, save_recipe, \
-    get_tags_for_filter
 from .models import Ingredient, Recipe, FavoriteRecipe, Follow, ShoppingList
+from .utils import (get_ingredients, add_ingredients_to_recipe, save_recipe,
+                    get_tags_for_filter)
 
 User = get_user_model()
 
@@ -29,13 +29,15 @@ def server_error(request):
 @require_http_methods(['GET'])
 def ingredients(request):
     """Вывод ингредиентов в форме"""
-    if request.GET:
-        query = (request.GET['query']).lower()
-        ingredients_list = Ingredient.objects.values('title',
-                                                     'dimension').filter(
-            title__icontains=query)
-        context = list(ingredients_list)
-        return JsonResponse(context, safe=False)
+    query = (request.GET['query']).lower()
+    ingredients_list = (
+        Ingredient.objects.values(
+            'title',
+            'dimension',
+        ).filter(title__icontains=query)
+    )
+    context = list(ingredients_list)
+    return JsonResponse(context, safe=False)
 
 
 def index(request):
@@ -65,8 +67,9 @@ def view_recipe(request, recipe_id):
 
 def authors_recipes(request, username):
     """Список рецептов одного автора."""
+    author = get_object_or_404(User, username=username)
     tags, tags_for_filter = get_tags_for_filter(request)
-    recipe_list = Recipe.objects.filter(author__username=username,
+    recipe_list = Recipe.objects.filter(author=author,
                                         tags__in=tags_for_filter)
     paginator = Paginator(recipe_list, OBJECT_PER_PAGE)
     page_number = request.GET.get('page')
@@ -74,7 +77,7 @@ def authors_recipes(request, username):
     context = {
         'page': page,
         'paginator': paginator,
-        'username': username,
+        'author': author,
         'tags': tags,
         'tags_for_filter': tags_for_filter,
     }
@@ -83,9 +86,7 @@ def authors_recipes(request, username):
         my_user = request.user
         follow = Follow.objects.filter(user=my_user, author__username=username)
         follow_or_author = follow or my_user == author
-        print(follow_or_author)
         context['follow_or_author'] = follow_or_author
-    print(context)
     return render(request, 'authors_recipes.html', context)
 
 
@@ -158,29 +159,7 @@ def favorite(request):
 
 
 @login_required
-def author_follow(request, username):
-    """Подписаться на автора."""
-    my_user = request.user
-    my_author = get_object_or_404(User, username=username)
-    if my_user == my_author:
-        return redirect(request.META.get('HTTP_REFERER'))
-    _, created = Follow.objects.get_or_create(user=my_user, author=my_author)
-    return redirect(request.META.get('HTTP_REFERER'))
-
-
-@login_required
-def author_unfollow(request, username):
-    """Убрать автора из подписок."""
-    my_user = request.user
-    my_author = get_object_or_404(User, username=username)
-    authors = Follow.objects.filter(user=my_user, author=my_author)
-    if authors.exists():
-        authors.delete()
-    return redirect(request.META.get('HTTP_REFERER'))
-
-
-@login_required
-def subscriptions(request):
+def subscriptions_list(request):
     """Страница из рецептов избранных авторов"""
     my_user = request.user
     following_authors = User.objects.filter(following__user=my_user)
@@ -192,6 +171,22 @@ def subscriptions(request):
         'paginator': paginator
     }
     return render(request, 'subscriptions.html', context)
+
+
+@login_required
+@require_http_methods(['POST', 'DELETE'])
+def subscriptions(request, author_id):
+    """Подписаться/Отписаться на Автора"""
+    my_user = request.user
+    author = get_object_or_404(User, id=author_id)
+    context = {'success': True}
+    if request.method == 'POST':
+        _, created = Follow.objects.get_or_create(user=my_user, author=author)
+        return JsonResponse(context)
+    subscription = Follow.objects.filter(user=my_user, author=author)
+    if subscription.exists():
+        subscription.delete()
+    return JsonResponse(context)
 
 
 @require_http_methods(['POST', 'DELETE'])

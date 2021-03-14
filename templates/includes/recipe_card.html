@@ -1,13 +1,13 @@
 {% load static %}
-{% load user_filters %}
+{% load recipe_filters %}
 {% csrf_token %}
-<div class="card" data-id="{{recipe.id}}">
+<div class="card" data-id="{{ recipe.id }}">
     {% load thumbnail %}
     {% thumbnail recipe.image "480x480" crop="center" upscale=True as im %}
         <a href="{% url 'view_recipe' recipe.id %}" class="link" target="_blank"><img src="{{ im.url }}" alt="Какой-то текст" class="card__image"></a>
     {% endthumbnail %}
     <div class="card__body">
-        <a class="card__title link" href="{% url 'view_recipe' recipe.id %}" target="_blank">{{recipe}}</a>
+        <a class="card__title link" href="{% url 'view_recipe' recipe.id %}" target="_blank">{{ recipe }}</a>
         <ul class="card__items">
             {% for tag in recipe.tags.all %}
                 {% if tag.title == 'Обед' %}
@@ -20,8 +20,8 @@
             {% endfor %}
         </ul>
         <div class="card__items card__items_column">
-            <p class="card__text"><span class="icon-time"></span> {{recipe.cooking_time}} мин.</p>
-            <p class="card__text"><span class="icon-user"></span> <a href="{% url 'authors_recipes' recipe.author.username %}" style="color: black">{{recipe.author}}</a></p>
+            <p class="card__text"><span class="icon-time"></span> {{ recipe.cooking_time }} мин.</p>
+            <p class="card__text"><span class="icon-user"></span> <a href="{% url 'authors_recipes' recipe.author.username %}" style="color: black">{{ recipe.author }}</a></p>
         </div>
     </div>
     <div class="card__footer">
