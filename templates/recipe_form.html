@@ -32,15 +32,17 @@
                  <div class="form__field-group">
                     <div class="tags">
                         {% for tag in form.fields.tags.choices.queryset %}
-                        <div class="tags__item">
-                            <input type="checkbox"
-                                   name="tags"
-                                   value="{{tag.id}}"
-                                   id="id_{{tag.value}}"
-                                   class="tags__checkbox {{tag.color}}" checked>
-                            <label for="id_breakfast" class="tags__label">{{tag}}</label>
-                        </div>
+                            <div class="tags__item">
+                                <input type="checkbox"
+                                       name="tags"
+                                       value="{{ tag.id }}"
+                                       id="id_{{ tag.value }}"
+                                       class="tags__checkbox {{tag.color}}"
+                                       {% if tag in recipe.tags.all %}checked{% endif %}>
+                                <label for="{{ tag.id }}" class="tags__label">{{ tag }}</label>
+                            </div>
                         {% endfor %}
+                        <span class="form__error">{{ form.tags.errors }}</span>
                     </div>
                  </div>
             </div>
@@ -57,7 +59,17 @@
                         <label for="cantidad" class="form__label" id="cantidadVal">шт.</label>
                     </div>
                     <div class="form__field-group-ingredientes-container">
-
+                        {% if recipe %}
+                            {% for item in recipe.ingredients_amount.all %}
+                                <div class="form__field-item-ingredient" id="ing_{{ forloop.counter }}">
+                                    <span> {{ item.ingredient.title }} {% if item.amount > 0 %}{{ item.amount|floatformat }}{% endif %} {{ item.ingredient.dimension }}.</span>
+                                    <span class="form__field-item-delete"></span>
+                                    <input id="nameIngredient_{{ forloop.counter }}" name="nameIngredient_{{ forloop.counter }}" type="hidden" value="{{ item.ingredient.title }}">
+                                    <input id="valueIngredient_{{ forloop.counter }}" name="valueIngredient_{{ forloop.counter }}" type="hidden" value="{{ item.amount }}">
+                                    <input id="unitsIngredient_{{ forloop.counter }}" name="unitsIngredient_{{ forloop.counter }}" type="hidden" value="{{ item.ingredient.dimension }}">
+                                </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                     <span class="form__ingredient-link" id="addIng">Добавить ингредиент</span>
                     <span class="form__error"></span>
@@ -105,11 +117,11 @@
 
 {% endblock content %}
 
-{% block style %}
+{% block js %}
   <script src="{% static 'js/config/config.js' %}"></script>
   <script src="{% static 'js/components/Header.js' %}"></script>
   <script src="{% static 'js/utils/debouncing.js' %}"></script>
 
   <script src="{% static 'js/api/Api.js' %}"></script>
   <script src="{% static 'formRecipe.js' %}"></script>
-{% endblock style %}
+{% endblock js %}

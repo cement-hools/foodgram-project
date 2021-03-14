@@ -43,7 +43,7 @@ def ingredients(request):
 def index(request):
     """Главная страница. Список всех рецептов."""
     tags, tags_for_filter = get_tags_for_filter(request)
-    recipes = Recipe.objects.filter(tags__in=tags_for_filter)
+    recipes = Recipe.objects.filter(tags__in=tags_for_filter).distinct()
     paginator = Paginator(recipes, OBJECT_PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
@@ -56,21 +56,12 @@ def index(request):
     return render(request, 'index.html', context)
 
 
-def view_recipe(request, recipe_id):
-    """Просмотр одного рецепта."""
-    recipe = get_object_or_404(Recipe, id=recipe_id)
-    context = {
-        'recipe': recipe,
-    }
-    return render(request, 'recipe_view.html', context)
-
-
 def authors_recipes(request, username):
     """Список рецептов одного автора."""
     author = get_object_or_404(User, username=username)
     tags, tags_for_filter = get_tags_for_filter(request)
     recipe_list = Recipe.objects.filter(author=author,
-                                        tags__in=tags_for_filter)
+                                        tags__in=tags_for_filter).distinct()
     paginator = Paginator(recipe_list, OBJECT_PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
@@ -88,6 +79,15 @@ def authors_recipes(request, username):
         follow_or_author = follow or my_user == author
         context['follow_or_author'] = follow_or_author
     return render(request, 'authors_recipes.html', context)
+
+
+def view_recipe(request, recipe_id):
+    """Просмотр одного рецепта."""
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    context = {
+        'recipe': recipe,
+    }
+    return render(request, 'recipe_view.html', context)
 
 
 @login_required
@@ -125,7 +125,7 @@ def edit_recipe(request, recipe_id):
         'form': form,
         'recipe': recipe,
     }
-    return render(request, 'recipe_edit_form.html', context)
+    return render(request, 'recipe_form.html', context)
 
 
 @login_required
@@ -145,7 +145,7 @@ def favorite(request):
     tags, tags_for_filter = get_tags_for_filter(request)
     my_user = request.user
     recipes_list = my_user.favorite_recipes.filter(
-        recipe__tags__in=tags_for_filter)
+        recipe__tags__in=tags_for_filter).distinct()
     paginator = Paginator(recipes_list, OBJECT_PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
@@ -249,7 +249,7 @@ def shopping_list_save(request):
     ingredient_list = Recipe.objects.prefetch_related(
         'ingredients', 'ingredients_amount'
     ).filter(
-        shopping_lists__user=my_user
+        at_shopping_lists__user=my_user
     ).order_by(
         'ingredients__title'
     ).values(
