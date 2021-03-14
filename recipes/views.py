@@ -175,6 +175,25 @@ def subscriptions_list(request):
 
 @login_required
 @require_http_methods(['POST', 'DELETE'])
+def favorites(request, recipe_id):
+    """Добавить/удалить рецепт в избранное."""
+    my_user = request.user
+    recipe = get_object_or_404(Recipe, id=recipe_id)
+    context = {'success': True}
+
+    if request.method == 'POST':
+        _, created = FavoriteRecipe.objects.get_or_create(user=my_user,
+                                                          recipe=recipe)
+        return JsonResponse(context)
+
+    favorite_recipe = get_object_or_404(FavoriteRecipe, user=my_user,
+                                        recipe__id=recipe_id)
+    favorite_recipe.delete()
+    return JsonResponse(context)
+
+
+@login_required
+@require_http_methods(['POST', 'DELETE'])
 def subscriptions(request, author_id):
     """Подписаться/Отписаться на Автора"""
     my_user = request.user
@@ -183,12 +202,14 @@ def subscriptions(request, author_id):
     if request.method == 'POST':
         _, created = Follow.objects.get_or_create(user=my_user, author=author)
         return JsonResponse(context)
+
     subscription = Follow.objects.filter(user=my_user, author=author)
     if subscription.exists():
         subscription.delete()
     return JsonResponse(context)
 
 
+@login_required
 @require_http_methods(['POST', 'DELETE'])
 def purchases(request, recipe_id):
     """Добавить/удалить в список покупок"""
@@ -199,8 +220,6 @@ def purchases(request, recipe_id):
         _, created = ShoppingList.objects.get_or_create(user=my_user,
                                                         recipe=recipe)
         return JsonResponse(context)
-        context = {'success': True}
-        return JsonResponse(context)
 
     favorite_recipe = get_object_or_404(ShoppingList, user=my_user,
                                         recipe=recipe)
@@ -208,16 +227,18 @@ def purchases(request, recipe_id):
     return JsonResponse(context)
 
 
+@login_required
 def shopping_list(request):
     """Страница Список покупок."""
     my_user = request.user
-    shopping_list = my_user.users_shopping_lists.all
+    shopping_list = my_user.users_shopping_lists.all()
     context = {
         'shopping_list': shopping_list,
     }
     return render(request, 'shopping_list.html', context)
 
 
+@login_required
 def shopping_list_save(request):
     """Скачать список ингредиентов"""
     my_user = request.user
@@ -247,21 +268,3 @@ def shopping_list_save(request):
     response = HttpResponse(ingredient_txt, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename={filename}'
     return response
-
-
-@require_http_methods(['POST', 'DELETE'])
-def favorites(request, recipe_id):
-    """Добавить/удалить рецепт в избранное."""
-    my_user = request.user
-    recipe = get_object_or_404(Recipe, id=recipe_id)
-    context = {'success': True}
-
-    if request.method == 'POST':
-        _, created = FavoriteRecipe.objects.get_or_create(user=my_user,
-                                                          recipe=recipe)
-        return JsonResponse(context)
-
-    favorite_recipe = get_object_or_404(FavoriteRecipe, user=my_user,
-                                        recipe__id=recipe_id)
-    favorite_recipe.delete()
-    return JsonResponse(context)
