@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Технологии{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'pages/form.css' %}">{% endblock css %}
+
+{% block main_title %}{{ text }}{% endblock main_title %}
+
+{% block content %}
+
+    <div class="form-container">
+        <form class="form">
+            <ul>
+                {% for tech in tech_list %}
+                <li><a class="form__info-text">{{ tech }}</a></li>
+                {% endfor %}
+            </ul>
+        </form>
+    </div>
+
+{% endblock %} 

@@ -13,6 +13,8 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
 
+    path('about/', include('about.urls', namespace='about')),
+
     path('', include('recipes.urls'))
 ]
 

@@ -19,6 +19,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'users',
     'recipes',
+    'about',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,7 +43,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'foodgram.urls'
 
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

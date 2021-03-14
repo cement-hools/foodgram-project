@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Об авторе проекта{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'pages/form.css' %}">{% endblock css %}
+
+{% block main_title %}Об авторе{% endblock main_title %}
+
+{% block content %}
+
+    <div class="form-container">
+        <form class="form">
+            <p class="form__info-text">{{ text }}</p>
+        </form>
+    </div>
+
+{% endblock %} 
