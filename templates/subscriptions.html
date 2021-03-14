@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% load user_filters %}
+{% load recipe_filters %}
 {% block title %}Мои подписки{% endblock %}
 {% block css %}<link rel="stylesheet" href="{% static 'pages/myFollow.css' %}">{% endblock css %}
 
@@ -18,7 +18,7 @@
 
 {% endblock content %}
 
-{% block style %}
+{% block js %}
     <script src="{% static 'js/config/config.js' %}"></script>
     <script src="{% static 'js/components/MainCards.js' %}"></script>
     <script src="{% static 'js/components/MyFollow.js' %}"></script>
@@ -28,4 +28,4 @@
 
     <script src="{% static 'js/api/Api.js' %}"></script>
     <script src="{% static 'myFollow.js' %}"></script>
-{% endblock style %}
+{% endblock js %}

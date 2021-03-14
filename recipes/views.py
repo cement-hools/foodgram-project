@@ -200,6 +200,10 @@ def subscriptions(request, author_id):
     author = get_object_or_404(User, id=author_id)
     context = {'success': True}
     if request.method == 'POST':
+        if my_user == author_id:
+            context['success'] = False
+            return JsonResponse(context)
+
         _, created = Follow.objects.get_or_create(user=my_user, author=author)
         return JsonResponse(context)
 

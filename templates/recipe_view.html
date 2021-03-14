@@ -2,19 +2,19 @@
 {% load static %}
 {% load thumbnail %}
 {% load recipe_filters %}
-{% block title %}{{recipe.title}}{% endblock %}
+{% block title %}{{ recipe.title }}{% endblock %}
 {% block css %}<link rel="stylesheet" href="{% static 'pages/single.css' %}">{% endblock css %}
 
 
 {% block content %}
 {% csrf_token %}
-<div class="single-card" data-id="{{recipe.id}}" data-author="12">
+<div class="single-card" data-id="{{ recipe.id }}" data-author="{{ recipe.author.id }}">
     {% thumbnail recipe.image "480x480" crop="center" upscale=True as im %}
         <img src="{{ im.url }}" alt="какой-то текст" class="single-card__image">
     {% endthumbnail %}
     <div class="single-card__info">
         <div class="single-card__header-info">
-            <h1 class="single-card__title">{{recipe.title}}</h1>
+            <h1 class="single-card__title">{{ recipe.title }}</h1>
             {% if user.is_authenticated %}
             <div class="single-card__favorite">
                 {% if user.favorite_recipes.all|favorite_recipe:recipe %}
@@ -40,7 +40,7 @@
         <div class="single-card__items single-card__items_column">
             <p class="single-card__text"><span class="icon-time"></span> {{recipe.cooking_time}} мин.</p>
             <ul class="single-card__items">
-                <li class="single-card__item"><p class="single-card__text"><span class="icon-user"></span><a href="{% url 'authors_recipes' recipe.author.username %}" style="color: black">{{recipe.author}}</a></p></li>
+                <li class="single-card__item"><p class="single-card__text"><span class="icon-user"></span><a href="{% url 'authors_recipes' recipe.author.username %}" style="color: black">{{ recipe.author.username }}</a></p></li>
                {% if user.is_authenticated and user == recipe.author or user.is_staff %}
                     <li class="single-card__item">  <a style="margin-left: 2.5em" href="{% url 'edit_recipe' recipe.id %}" class="single-card__text">Редактировать рецепт</a></li>
                 {% endif %}
@@ -48,31 +48,28 @@
         </div>
         {% if user.is_authenticated %}
             <ul class="single-card__items">
-            <li class="single-card__item">
-                {% if user.users_shopping_lists.all|favorite_recipe:recipe %}
-                    <button class="button button_style_light-blue-outline" name="purchases"><span class="icon-check button__icon"></span>Рецепт добавлен</button>
-                {% else %}
-                    <button class="button button_style_blue" name="purchases" data-out><span class="icon-plus"></span> Добавить в покупки</button>
-                {% endif %}
+                <li class="single-card__item">
+                    {% if user.users_shopping_lists.all|favorite_recipe:recipe %}
+                        <button class="button button_style_light-blue-outline" name="purchases"><span class="icon-check button__icon"></span>Рецепт добавлен</button>
+                    {% else %}
+                        <button class="button button_style_blue" name="purchases" data-out><span class="icon-plus"></span> Добавить в покупки</button>
+                    {% endif %}
 
-            </li>
-            {% if user != recipe.author and not user.follower.all|follow_author:recipe.author %}
-                <form action="{% url 'follow' recipe.author %}" method="post">
-                    {% csrf_token %}
+                </li>
+            {% if user != recipe.author %}
+                {% if not user.follower.all|follow_author:recipe.author %}
                     <li class="single-card__item">
                         <button class="button button_style_light-blue button_size_subscribe"
-                                name="subscribe1" data-out>Подписаться на автора</button>
+                                name="subscribe" data-out>Подписаться на автора
+                        </button>
                     </li>
-                </form>
-            {% else %}
-                <li class="single-card__item">
-                    <form action="{% url 'unfollow' recipe.author %}" method="post">
-                        {% csrf_token %}
-                            <button class="button button_style_light-blue button_size_subscribe"
-                                    name="subscribe1" data-out>Отписаться от автора
-                            </button>
-                    </form>
-                </li>
+                {% else %}
+                    <li class="single-card__item">
+                        <button class="button button_style_light-blue button_size_subscribe"
+                                name="subscribe">Отписаться от автора
+                        </button>
+                    </li>
+                {% endif %}
             {% endif %}
         </ul>
         {% endif %}
@@ -80,20 +77,20 @@
             <h3 class="single-card__section-title">Ингридиенты:</h3>
             <div class="single-card__items single-card__items_column">
                 {% for item in recipe.ingredients_amount.all %}
-                    <p class=" single-card__section-item">{{item.ingredient}} - {{item.amount}} {{item.ingredient.dimension}}</p>
+                    <p class=" single-card__section-item">{{ item.ingredient }} - {{ item.amount }} {{ item.ingredient.dimension }}</p>
                 {% endfor %}
             </div>
         </div>
         <div class="single-card__section">
             <h3 class="single-card__section-title">Описание:</h3>
-            <p class=" single-card__section-text">{{recipe.description}}</p>
+            <p class=" single-card__section-text">{{ recipe.description }}</p>
         </div>
     </div>
 </div>
 
 {% endblock content %}
 
-{% block style %}
+{% block js %}
     <script src="{% static 'js/components/Purchases.js' %}"></script>
     <script src="{% static 'js/components/Favorites.js' %}"></script>
     <script src="{% static 'js/components/Subscribe.js' %}"></script>
@@ -103,4 +100,4 @@
     <script src="{% static 'js/components/Header.js' %}"></script>
     <script src="{% static 'js/api/Api.js' %}"></script>
     <script src="{% static 'singlePage.js' %}"></script>
-{% endblock style %}
+{% endblock js %}
