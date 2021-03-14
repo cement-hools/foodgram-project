@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -20,10 +21,13 @@ class Ingredient(models.Model):
 
 class Tag(models.Model):
     """Модель тега."""
+    ORANGE = 'tags__checkbox_style_orange'
+    GREEN = 'tags__checkbox_style_green'
+    PURPLE = 'tags__checkbox_style_purple'
     TAG_COLOR = (
-        ('tags__checkbox_style_orange', 'Оранжевый',),
-        ('tags__checkbox_style_green', 'Зеленый'),
-        ('tags__checkbox_style_purple', 'Фиолетовый'),
+        (ORANGE, 'Оранжевый',),
+        (GREEN, 'Зеленый'),
+        (PURPLE, 'Фиолетовый'),
     )
     title = models.CharField('Название', max_length=50, null=True)
     color = models.CharField('Цвет', max_length=50, choices=TAG_COLOR)
@@ -87,18 +91,25 @@ class IngredientAmount(models.Model):
         blank=False,
         verbose_name='рецепт',
     )
-    amount = models.IntegerField('количество', blank=False)
+    amount = models.IntegerField(
+        'количество',
+        blank=False,
+        validators=[
+            MinValueValidator(1)
+        ]
+    )
 
     class Meta:
         verbose_name = 'кол-во ингредиента'
         verbose_name_plural = 'кол-во ингредиентов'
 
     def __str__(self):
-        ingredient = self.ingredient
+        ingredient = self.ingredient.title
         amount = self.amount
         dimension = ingredient.dimension
-        return (f'{ingredient}: {amount}{dimension} - рецепт #{self.recipe.id}'
-                f' {self.recipe}')
+        recipe = self.recipe
+        return (f'{ingredient}: {amount}{dimension} - рецепт #{recipe.id}'
+                f' {recipe.title}')
 
 
 class FavoriteRecipe(models.Model):
@@ -123,7 +134,9 @@ class FavoriteRecipe(models.Model):
         verbose_name_plural = 'Избранные рецепты'
 
     def __str__(self):
-        return f'{self.user} добавил в избранное {self.recipe}'
+        user_username = self.user.username
+        recipe = self.recipe.title
+        return f'{user_username} добавил в избранное {recipe}'
 
 
 class ShoppingList(models.Model):
@@ -148,7 +161,9 @@ class ShoppingList(models.Model):
         verbose_name_plural = 'Списки покупок'
 
     def __str__(self):
-        return f'{self.user} добавил в список покупок {self.recipe}'
+        user_username = self.user.username
+        recipe = self.recipe.title
+        return f'{user_username} добавил в список покупок {recipe}'
 
 
 class Follow(models.Model):
@@ -171,4 +186,6 @@ class Follow(models.Model):
         verbose_name_plural = 'Подписки'
 
     def __str__(self):
-        return f'{self.user} подписался на {self.author}'
+        user_username = self.user.username
+        author_username = self.author.username
+        return f'{user_username} подписался на {author_username}'
