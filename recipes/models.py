@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import UniqueConstraint
 
 User = get_user_model()
 
@@ -106,7 +107,7 @@ class IngredientAmount(models.Model):
     def __str__(self):
         ingredient = self.ingredient.title
         amount = self.amount
-        dimension = ingredient.dimension
+        dimension = self.ingredient.dimension
         recipe = self.recipe
         return (f'{ingredient}: {amount}{dimension} - рецепт #{recipe.id}'
                 f' {recipe.title}')
@@ -181,7 +182,12 @@ class Follow(models.Model):
     pub_date = models.DateTimeField('дата добавления', auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'author',)
+        constraints = [
+            UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_following',
+            )
+        ]
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
 
