@@ -63,7 +63,7 @@ class Recipe(models.Model):
     cooking_time = models.PositiveSmallIntegerField('время приготовления')
     ingredients = models.ManyToManyField(
         Ingredient,
-        related_name='recipe_ingredient',
+        related_name='recipes',
         through='IngredientAmount',
         verbose_name='ингредиент',
     )
@@ -73,8 +73,8 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ('-pub_date',)
-        verbose_name = 'рецепт'
-        verbose_name_plural = 'рецепты'
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
 
     def __str__(self):
         return self.title
@@ -85,7 +85,7 @@ class IngredientAmount(models.Model):
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, verbose_name='ингредиент',
         blank=False,
-        related_name='amount',
+        related_name='recipes_amount',
     )
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name='ingredients_amount',
@@ -101,8 +101,9 @@ class IngredientAmount(models.Model):
     )
 
     class Meta:
-        verbose_name = 'кол-во ингредиента'
-        verbose_name_plural = 'кол-во ингредиентов'
+        ordering = ('-recipe__pub_date',)
+        verbose_name = 'Кол-во ингредиента'
+        verbose_name_plural = 'Кол-во ингредиентов'
 
     def __str__(self):
         ingredient = self.ingredient.title
@@ -150,7 +151,7 @@ class ShoppingList(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='shopping_lists'
+        related_name='at_shopping_lists'
     )
     pub_date = models.DateTimeField(
         'дата добавления', auto_now_add=True, db_index=True
@@ -182,11 +183,12 @@ class Follow(models.Model):
     pub_date = models.DateTimeField('дата добавления', auto_now_add=True)
 
     class Meta:
+        ordering = ('-pub_date',)
         constraints = [
             UniqueConstraint(
                 fields=['user', 'author'],
                 name='unique_following',
-            )
+            ),
         ]
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
