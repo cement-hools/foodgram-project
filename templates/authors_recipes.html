@@ -9,23 +9,19 @@
 {% block content %}
 {% csrf_token %}
     {% if user.is_authenticated and user != author %}
-        {% if not follow_or_author %}
-            <div class="author-subscribe" data-author="{{ author.id }}">
-                <p style="padding: 0 0 2em 0;">
+        <div class="author-subscribe" data-author="{{ author.id }}">
+            <p style="padding: 0 0 2em 0;">
+                {% if not follow_or_author %}
                     <button class="button button_style_light-blue button_size_subscribe"
                             name="subscribe" data-out>Подписаться на автора
                     </button>
-                </p>
-            </div>
-        {% else %}
-            <div class="author-subscribe" data-author="{{ author.id }}">
-                <p style="padding: 0 0 2em 0;">
+                {% else %}
                     <button class="button button_style_light-blue button_size_subscribe"
                             name="subscribe">Отписаться от автора
                     </button>
-                </p>
-            </div>
-        {% endif %}
+                {% endif %}
+            </p>
+        </div>
     {% endif %}
     <div class="card-list">
         {% for recipe in page %}
