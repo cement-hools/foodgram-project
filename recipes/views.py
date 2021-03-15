@@ -17,15 +17,6 @@ User = get_user_model()
 OBJECT_PER_PAGE = settings.OBJECT_PER_PAGE
 
 
-def page_not_found(request, exception):
-    context = {'path': request.path}
-    return render(request, 'misc/404.html', context, status=404)
-
-
-def server_error(request):
-    return render(request, 'misc/500.html', status=500)
-
-
 @require_http_methods(['GET'])
 def ingredients(request):
     """Вывод ингредиентов в форме"""
