@@ -20,7 +20,7 @@ OBJECT_PER_PAGE = settings.OBJECT_PER_PAGE
 @require_http_methods(['GET'])
 def ingredients(request):
     """Вывод ингредиентов в форме."""
-    query = (request.GET['query'])
+    query = (request.GET['query']).lower()
     ingredients_list = (
         Ingredient.objects.values(
             'title',
