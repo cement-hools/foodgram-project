@@ -25,7 +25,7 @@ def ingredients(request):
         Ingredient.objects.values(
             'title',
             'dimension',
-        ).filter(title__istartswith=query)
+        ).filter(title__icontains=query)
     )
     context = list(ingredients_list)
     return JsonResponse(context, safe=False)
