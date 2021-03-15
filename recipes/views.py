@@ -19,8 +19,8 @@ OBJECT_PER_PAGE = settings.OBJECT_PER_PAGE
 
 @require_http_methods(['GET'])
 def ingredients(request):
-    """Вывод ингредиентов в форме"""
-    query = (request.GET['query']).lower()
+    """Вывод ингредиентов в форме."""
+    query = (request.GET['query'])
     ingredients_list = (
         Ingredient.objects.values(
             'title',
@@ -64,9 +64,8 @@ def authors_recipes(request, username):
         'tags_for_filter': tags_for_filter,
     }
     if request.user.is_authenticated:
-        author = get_object_or_404(User, username=username)
         my_user = request.user
-        follow = Follow.objects.filter(user=my_user, author__username=username)
+        follow = Follow.objects.filter(user=my_user, author=author)
         follow_or_author = follow or my_user == author
         context['follow_or_author'] = follow_or_author
     return render(request, 'authors_recipes.html', context)
@@ -151,7 +150,7 @@ def favorite(request):
 
 @login_required
 def subscriptions_list(request):
-    """Страница из рецептов избранных авторов"""
+    """Страница из рецептов избранных авторов."""
     my_user = request.user
     following_authors = User.objects.filter(following__user=my_user)
     paginator = Paginator(following_authors, 3)
@@ -186,7 +185,7 @@ def favorites(request, recipe_id):
 @login_required
 @require_http_methods(['POST', 'DELETE'])
 def subscriptions(request, author_id):
-    """Подписаться/Отписаться на Автора"""
+    """Подписаться/Отписаться на Автора."""
     my_user = request.user
     author = get_object_or_404(User, id=author_id)
     context = {'success': True}
@@ -203,7 +202,7 @@ def subscriptions(request, author_id):
 @login_required
 @require_http_methods(['POST', 'DELETE'])
 def purchases(request, recipe_id):
-    """Добавить/удалить в список покупок"""
+    """Добавить/удалить в список покупок."""
     my_user = request.user
     recipe = get_object_or_404(Recipe, id=recipe_id)
     context = {'success': True}
@@ -231,7 +230,7 @@ def shopping_list(request):
 
 @login_required
 def shopping_list_save(request):
-    """Скачать список ингредиентов"""
+    """Скачать список ингредиентов."""
     my_user = request.user
     ingredient_list = Recipe.objects.prefetch_related(
         'ingredients', 'ingredients_amount'
