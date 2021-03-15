@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load recipe_filters %}
 
 {% block title %}
     {% if not recipe %}Создание рецепта{% else %}Редактирование рецепта{% endif %}
