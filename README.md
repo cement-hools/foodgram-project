@@ -36,10 +36,11 @@ https://github.com/cement-hools/foodgram-project/workflows/foodgram/badge.svg
     ```   
  - заполнить базу данных
     ```
-    docker-compose exec web python manage.py loaddata fixtures.json
+    docker-compose exec web python manage.py loaddata fixture.json
    ```   
  - создать суперпользователя
     ```
     docker-compose exec web python manage.py createsuperuser
     ```  
     Введите username, email, password<br><br>
+- после установки перейдите в браузре на http://localhost
