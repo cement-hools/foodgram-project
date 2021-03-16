@@ -1,0 +1,41 @@
+version: '3.8'
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+  nginx_conf:
+
+services:
+  db:
+    image: postgres:13.2
+    container_name: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - foodgram/.env
+  web:
+    image: cementhools/foodgram:latest
+    container_name: web
+    restart: always
+    command: gunicorn foodgram.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - static_volume:/foodgram/static/
+      - media_volume:/foodgram/media/
+      - nginx_conf:/foodgram/nginx/
+    expose:
+      - 8000
+    depends_on:
+      - db
+    env_file:
+      - foodgram/.env
+  nginx:
+    image: nginx:1.19-alpine
+    volumes:
+      - static_volume:/foodgram/static/
+      - media_volume:/foodgram/media/
+      - nginx_conf:/etc/nginx/conf.d/
+    ports:
+      - 80:80
+    depends_on:
+      - web
