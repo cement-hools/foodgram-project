@@ -22,7 +22,7 @@ jobs:
           pip install flake8 pytest
           pip install -r requirements.txt
       - name: Lint with flake8
-        run: flake8 .
+        run: flake8 . --exclude=./recipes/migrations/*,./foodgram/settings.py
 
   build_and_push_to_docker_hub:
     name: Push Docker image to Docker Hub
@@ -42,30 +42,4 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: cementhools/yamdb:latest
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build_and_push_to_docker_hub
-    steps:
-      - name: executing remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            sudo docker-compose down
-            sudo docker-compose build
-            sudo docker-compose up -d
-  send_message:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: send message
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: ${{ github.workflow }} успешно выполнен!!
-
+          tags: cementhools/foodgram:latest
