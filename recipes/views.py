@@ -10,7 +10,7 @@ from foodgram import settings
 from .forms import RecipeForm
 from .models import Ingredient, Recipe, FavoriteRecipe, Follow, ShoppingList
 from .utils import (get_ingredients, add_ingredients_to_recipe, save_recipe,
-                    get_tags_for_filter)
+                    get_tags_for_filter, ingredients_for_shopping_list)
 
 User = get_user_model()
 
@@ -245,14 +245,8 @@ def shopping_list_save(request):
         amount=Sum('ingredients_amount__amount'),
         dimension=F('ingredients__dimension')
     )
-    ingredient_txt = []
-    count = 1
-    for item in ingredient_list:
-        ingredient_txt.append(
-            (f"{count}. {item['title'].capitalize()} "
-             f"\u2014 {item['amount']} {item['dimension']}.\n")
-        )
-        count += 1
+
+    ingredient_txt = ingredients_for_shopping_list(ingredient_list)
 
     filename = 'shoppinglist.txt'
     response = HttpResponse(ingredient_txt, content_type='text/plain')

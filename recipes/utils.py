@@ -12,7 +12,8 @@ def get_ingredients(request):
             ingredient_name = request.POST[key]
             ingredient_value = int(request.POST[
                                        'valueIngredient_' + ingredient_id])
-
+            if ingredient_value < 1:
+                continue
             ingredients[ingredient_name] = (
                     ingredients.get(ingredient_name, 0) + ingredient_value)
     return ingredients
@@ -53,3 +54,27 @@ def get_tags_for_filter(request):
     request_teg_id = [int(tag_id) for tag_id in request.GET.getlist('tags')]
     tags_for_filter = request_teg_id or tags_id
     return tags, tags_for_filter,
+
+
+def ingredients_for_shopping_list(ingredients):
+    """Список ингредиентов для сохранения в TXT."""
+    ingredient_txt = [
+        '************************\n'
+        '*  Список игредиентов  *\n',
+        '************************\n',
+        '\n',
+    ]
+    count = 1
+    if ingredients.count() == 1 and ingredients[0].get('title') is None:
+        ingredient_txt.append('   ---   ПУСТО   ---\n')
+        return ingredient_txt
+    for item in ingredients:
+        title = item.get('title')
+        if title is None:
+            continue
+        ingredient_txt.append(
+            (f"{count}. {title.capitalize()} "
+             f"\u2014 {item['amount']} {item['dimension']}.\n")
+        )
+        count += 1
+    return ingredient_txt
