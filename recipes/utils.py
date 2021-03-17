@@ -65,7 +65,9 @@ def ingredients_for_shopping_list(ingredients):
         '\n',
     ]
     count = 1
-    if ingredients.count() == 1 and ingredients[0].get('title') is None:
+    if (not ingredients
+            or ingredients.count() <= 1
+            and ingredients[0].get('title') is None):
         ingredient_txt.append('   ---   ПУСТО   ---\n')
         return ingredient_txt
     for item in ingredients:
