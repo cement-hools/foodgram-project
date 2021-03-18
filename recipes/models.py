@@ -3,6 +3,8 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 
+from .validate import user_directory_path, validate_image
+
 User = get_user_model()
 
 
@@ -53,7 +55,8 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(Tag, related_name='recipes')
     title = models.CharField('название рецепта', max_length=256, blank=False)
     image = models.ImageField(
-        upload_to='recipe_images/',
+        upload_to=user_directory_path,
+        validators=[validate_image],
         verbose_name='изображение',
         blank=True,
         null=True,
