@@ -4,6 +4,8 @@ https://github.com/cement-hools/foodgram-project/workflows/foodgram/badge.svg
 --->
 ![yamdb%20workflow Actions Status](https://github.com/cement-hools/foodgram-project/workflows/foodgram%20workflow/badge.svg)
 
+![Иллюстрация к проекту](https://github.com/cement-hools/foodgram-project/releases/download/v1/default.PNG)
+
 Это онлайн-сервис, где пользователи смогут публиковать рецепты, 
 подписываться на публикации других пользователей, 
 добавлять понравившиеся рецепты в список «Избранное», 
