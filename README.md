@@ -28,19 +28,19 @@ https://github.com/cement-hools/foodgram-project/workflows/foodgram/badge.svg
     ```
 - запустите docker-compose
     ```
-    docker-compose up
+    make run
     ```
  - выполните миграции
     ```
-    docker-compose exec web python manage.py migrate
+    make migrate
     ```   
  - заполнить базу данных
     ```
-    docker-compose exec web python manage.py loaddata fixture.json
+   make load_data:
    ```   
  - создать суперпользователя
     ```
-    docker-compose exec web python manage.py createsuperuser
+    make superuser
     ```  
     Введите username, email, password<br><br>
 - после установки перейдите в браузре на http://localhost
