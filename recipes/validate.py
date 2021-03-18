@@ -1,10 +1,12 @@
 from django.core.exceptions import ValidationError
+from django.db.models.functions import datetime
 
 
 def user_directory_path(instance, filename):
     image_format = filename.split('.')[-1]
+    date = datetime.datetime.now().strftime('%d-%m-%Y %H.%M.%S')
     return (f'recipe_images/user_{instance.author.username}/'
-            f'recipe_{instance.title}.{image_format}')
+            f'{date}_recipe_{instance.title}.{image_format}')
 
 
 def validate_image(image_field_obj):
